@@ -11,23 +11,25 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 # Set working directory
 WORKDIR /var/www/html
 
-# Copy Laravel files
+# Copy Laravel project files
 COPY . .
 
-# Copy env
+# Copy environment file
 RUN cp .env.example .env
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Generate key and cache config
+# Generate application key and cache config
 RUN php artisan key:generate
 RUN php artisan config:clear
 RUN php artisan config:cache
 
-# Create SQLite DB and run migration
+# Create SQLite database file
 RUN touch /tmp/database.sqlite
-RUN php artisan migrate --force
 
-# Start Laravel
+# ⚠️ Skip migration here to avoid build-time failure
+# Laravel will run migration automatically via AppServiceProvider on first request
+
+# Start Laravel app
 CMD php artisan serve --host=0.0.0.0 --port=10000
